@@ -87,11 +87,11 @@ def cmd_add(args):
     return None
 
 
-def cmd_remove(args):
-    auth_keys_files = _get_auth_keys_files(args.user)
+def _find_keys(auth_keys_files: list[AuthorizedKeysFile], users: Optional[list[str]], desired_comments: list[str]) -> dict[AuthorizedKeysFile, list[AuthorizedKey]]:
     comment_map: dict[str, str] = {}
+    found_keys: dict[AuthorizedKeysFile, list[AuthorizedKey]] = {}
     for auth_keys_file in auth_keys_files:
-        for desired_comment in args.key_comment:
+        for desired_comment in desired_comments:
             if desired_comment in comment_map:
                 desired_comment = comment_map[desired_comment]
 
@@ -107,19 +107,36 @@ def cmd_remove(args):
                 else:
                     print(f"Cannot find key with comment '{desired_comment}' for user '{auth_keys_file.user}'")
                 continue
-            auth_keys_file.keys.remove(key)
-        auth_keys_file.save()
+
+            if auth_keys_file not in found_keys:
+                found_keys[auth_keys_file] = []
+            found_keys[auth_keys_file].append(key)
+    return found_keys
+
+
+def cmd_remove(args):
+    auth_keys_files = _get_auth_keys_files(args.user)
+    found_keys = _find_keys(auth_keys_files, args.user, args.key_comment)
+    for auth_key_file in found_keys:
+        for key in found_keys[auth_key_file]:
+            auth_key_file.keys.remove(key)
+        auth_key_file.save()
     return None
 
 
 def cmd_list(args):
     auth_keys_files = _get_auth_keys_files(args.user)
     for auth_keys_file in auth_keys_files:
+        if len(auth_keys_file.keys) == 0:
+            print(f"No keys in {auth_keys_file.path}")
+            continue
+
         print(f"Keys in {auth_keys_file.path}:")
         for key in auth_keys_file.keys:
             print(key.comment)
+    return None
 
-
+            
 def main() -> int:
     parser = ArgumentParser(
         prog="authkeyman",
