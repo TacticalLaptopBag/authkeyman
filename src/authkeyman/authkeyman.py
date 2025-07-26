@@ -7,7 +7,7 @@ from authkeyman.authorized_key import AuthorizedKey
 from authkeyman.authorized_keys_file import AuthorizedKeysFile
 
 
-def _get_auth_keys_files(users: Optional[str]) -> list[AuthorizedKeysFile]:
+def _get_auth_keys_files(users: Optional[list[str]]) -> list[AuthorizedKeysFile]:
     keys_location = ".ssh/authorized_keys"
     auth_keys_files: list[AuthorizedKeysFile] = []
     if users is None:
