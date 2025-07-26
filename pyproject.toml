@@ -1,6 +1,6 @@
 [project]
 name = "authkeyman"
-version = "1.1.0+0"
+version = "1.1.0.post1"
 description = "Quickly manage your authorized public SSH keys"
 authors = [
     {name = "Tactical Laptop Bag",email = "tacticallaptopbag@protonmail.com"}
