@@ -40,10 +40,14 @@ def _find_keys_from_comment_contents(
 def _get_key_from_comment_contents(
     auth_keys_file: AuthorizedKeysFile,
     comment_content: str,
+    use_first_match: bool = False,
 ) -> Optional[AuthorizedKey]:
     found_keys = _find_keys_from_comment_contents(auth_keys_file, comment_content)
     if len(found_keys) == 0:
         return None
+
+    if use_first_match and len(found_keys) > 0:
+        return found_keys[0]
 
     if len(found_keys) == 1:
         print(f"No keys found commented with '{comment_content}', but a similar key was found:")
@@ -87,7 +91,11 @@ def cmd_add(args):
     return None
 
 
-def _find_keys(auth_keys_files: list[AuthorizedKeysFile], users: Optional[list[str]], desired_comments: list[str]) -> dict[AuthorizedKeysFile, list[AuthorizedKey]]:
+def _find_keys(
+    auth_keys_files: list[AuthorizedKeysFile],
+    desired_comments: list[str],
+    confirm: bool = False
+) -> dict[AuthorizedKeysFile, list[AuthorizedKey]]:
     comment_map: dict[str, str] = {}
     found_keys: dict[AuthorizedKeysFile, list[AuthorizedKey]] = {}
     for auth_keys_file in auth_keys_files:
@@ -97,7 +105,7 @@ def _find_keys(auth_keys_files: list[AuthorizedKeysFile], users: Optional[list[s
 
             key = auth_keys_file.get_key_from_comment(desired_comment)
             if key is None:
-                key = _get_key_from_comment_contents(auth_keys_file, desired_comment)
+                key = _get_key_from_comment_contents(auth_keys_file, desired_comment, confirm)
                 if key is not None:
                     comment_map[desired_comment] = key.comment
 
@@ -116,7 +124,7 @@ def _find_keys(auth_keys_files: list[AuthorizedKeysFile], users: Optional[list[s
 
 def cmd_remove(args):
     auth_keys_files = _get_auth_keys_files(args.user)
-    found_keys = _find_keys(auth_keys_files, args.user, args.key_comment)
+    found_keys = _find_keys(auth_keys_files, args.key_comment, args.y)
     for auth_key_file in found_keys:
         for key in found_keys[auth_key_file]:
             auth_key_file.keys.remove(key)
@@ -171,6 +179,11 @@ def main() -> int:
         "key_comment",
         nargs="+",
         help="Public key comment or key comments to remove from authorized_keys"
+    )
+    remove_parser.add_argument(
+        "-y",
+        help="Automatically confirm key deletion on partial match",
+        action="store_true"
     )
     remove_parser.set_defaults(func=cmd_remove)
 
