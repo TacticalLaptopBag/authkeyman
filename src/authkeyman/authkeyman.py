@@ -68,7 +68,7 @@ def _get_key_from_comment_contents(
     return None
 
 
-def add(args):
+def cmd_add(args):
     auth_keys_files = _get_auth_keys_files(args.user)
     for auth_keys_file in auth_keys_files:
         for new_key_line in args.key:
@@ -87,7 +87,7 @@ def add(args):
     return None
 
 
-def remove(args):
+def cmd_remove(args):
     auth_keys_files = _get_auth_keys_files(args.user)
     comment_map: dict[str, str] = {}
     for auth_keys_file in auth_keys_files:
@@ -110,6 +110,14 @@ def remove(args):
             auth_keys_file.keys.remove(key)
         auth_keys_file.save()
     return None
+
+
+def cmd_list(args):
+    auth_keys_files = _get_auth_keys_files(args.user)
+    for auth_keys_file in auth_keys_files:
+        print(f"Keys in {auth_keys_file.path}:")
+        for key in auth_keys_file.keys:
+            print(key.comment)
 
 
 def main() -> int:
@@ -136,7 +144,7 @@ def main() -> int:
         nargs="+",
         help="Public key or keys to add to authorized_keys"
     )
-    add_parser.set_defaults(func=add)
+    add_parser.set_defaults(func=cmd_add)
 
     remove_parser = subparsers.add_parser(
         "remove",
@@ -147,7 +155,13 @@ def main() -> int:
         nargs="+",
         help="Public key comment or key comments to remove from authorized_keys"
     )
-    remove_parser.set_defaults(func=remove)
+    remove_parser.set_defaults(func=cmd_remove)
+
+    list_parser = subparsers.add_parser(
+        "list",
+        help="Lists all keys from authorized_keys"
+    )
+    list_parser.set_defaults(func=cmd_list)
     
     args = parser.parse_args()
     if args.func is not None:
