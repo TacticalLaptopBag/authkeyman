@@ -1,3 +1,3 @@
 # authkeyman
 
-Command line application
+Quickly manage your authorized public SSH keys
