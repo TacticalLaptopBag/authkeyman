@@ -134,7 +134,7 @@ def cmd_remove(args):
 
 def cmd_list(args):
     auth_keys_files = _get_auth_keys_files(args.user)
-    for auth_keys_file in auth_keys_files:
+    for i, auth_keys_file in enumerate(auth_keys_files):
         if len(auth_keys_file.keys) == 0:
             print(f"No keys in {auth_keys_file.path}")
             continue
@@ -142,6 +142,9 @@ def cmd_list(args):
         print(f"Keys in {auth_keys_file.path}:")
         for key in auth_keys_file.keys:
             print(key.comment)
+        # Separate each authorized_keys list by a newline
+        if i != len(auth_keys_files) - 1:
+            print()
     return None
 
             
