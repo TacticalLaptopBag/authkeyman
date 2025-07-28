@@ -17,6 +17,8 @@ class AuthorizedKeysFile:
             with open(path, "r") as file:
                 lines = file.readlines()
                 for line in lines:
+                    if line.strip() == "":
+                        continue
                     key = AuthorizedKey.from_line(line)
                     if key is None:
                         print(f"Failed to parse key in {path}:")
